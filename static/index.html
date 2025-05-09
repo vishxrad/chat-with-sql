@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal Login</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 400px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #3b82f6;
+            margin-bottom: 24px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2563eb;
+        }
+        
+        .error {
+            color: #dc2626;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .student-info {
+            background-color: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .chat-container {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .chat-messages {
+            height: 300px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            background-color: #fff;
+        }
+        
+        .message {
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            border-radius: 18px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        
+        .user-message {
+            background-color: #e2e8f0;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .system-message {
+            background-color: #3b82f6;
+            color: white;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .chat-input {
+            display: flex;
+        }
+        
+        .chat-input input {
+            flex: 1;
+            margin-right: 10px;
+        }
+        
+        .chat-input button {
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Student Portal</h1>
+        <div id="login-form">
+            <div class="form-group">
+                <label for="phone">Enter Your Contact Number:</label>
+                <input type="tel" id="phone" placeholder="Enter your registered phone number">
+                <div id="phone-error" class="error"></div>
+            </div>
+            <button id="login-btn">Login</button>
+        </div>
+        
+        <div id="student-info" class="student-info">
+            <h2>Student Information</h2>
+            <p><strong>ID:</strong> <span id="student-id"></span></p>
+            <p><strong>Name:</strong> <span id="student-name"></span></p>
+            <p><strong>Contact:</strong> <span id="student-contact"></span></p>
+            <p><strong>Course:</strong> <span id="student-course"></span></p>
+            <!-- <p><strong>Fees Status:</strong> <span id="student-fees"></span></p> -->
+        </div>
+        
+        <div id="chat-container" class="chat-container">
+            <h2>Chat with Assistant</h2>
+            <div id="chat-messages" class="chat-messages">
+                <div class="message system-message">Hello! How can I help you today?</div>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="user-message" placeholder="Type your message...">
+                <button id="send-btn">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginBtn = document.getElementById('login-btn');
+            const phoneInput = document.getElementById('phone');
+            const phoneError = document.getElementById('phone-error');
+            const studentInfo = document.getElementById('student-info');
+            const chatContainer = document.getElementById('chat-container');
+            const chatMessages = document.getElementById('chat-messages');
+            const userMessageInput = document.getElementById('user-message');
+            const sendBtn = document.getElementById('send-btn');
+            
+            // Student data will be stored here after login
+            let studentData = null;
+            
+            loginBtn.addEventListener('click', async function() {
+                const phoneNumber = phoneInput.value.trim();
+                
+                // Basic validation
+                if (!phoneNumber) {
+                    phoneError.textContent = 'Please enter your contact number';
+                    return;
+                }
+                
+                // Clear previous errors
+                phoneError.textContent = '';
+                
+                try {
+                    // Call the API to verify the phone number and get student data
+                    const response = await fetch('/api/student/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ contact_number: phoneNumber })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        phoneError.textContent = data.detail || 'Student not found';
+                        return;
+                    }
+                    
+                    // Store student data and display it
+                    studentData = data;
+                    displayStudentInfo(studentData);
+                    
+                    // Show chat interface
+                    document.getElementById('login-form').style.display = 'none';
+                    studentInfo.style.display = 'block';
+                    chatContainer.style.display = 'block';
+                    
+                } catch (error) {
+                    phoneError.textContent = 'An error occurred. Please try again.';
+                    console.error('Login error:', error);
+                }
+            });
+            
+            // Function to display student info
+            function displayStudentInfo(student) {
+                document.getElementById('student-id').textContent = student.student_id;
+                document.getElementById('student-name').textContent = student.full_name;
+                document.getElementById('student-contact').textContent = student.contact_number;
+                document.getElementById('student-course').textContent = student.course;
+                // document.getElementById('student-fees').textContent = student.fees_paid ? 'Paid' : 'Unpaid';
+            }
+            
+            // Handle sending messages
+            sendBtn.addEventListener('click', sendMessage);
+            userMessageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            async function sendMessage() {
+                const message = userMessageInput.value.trim();
+                if (!message) return;
+                
+                // Add user message to chat
+                addMessageToChat(message, 'user');
+                userMessageInput.value = '';
+                
+                try {
+                    // Send message to backend LLM API
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: message,
+                            student_id: studentData.student_id
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        addMessageToChat('Sorry, I encountered an error. Please try again.', 'system');
+                        return;
+                    }
+                    
+                    // Add LLM response to chat
+                    addMessageToChat(data.response, 'system');
+                    
+                } catch (error) {
+                    addMessageToChat('Sorry, I encountered an error. Please try again.', 'system');
+                    console.error('Chat error:', error);
+                }
+            }
+            
+            function addMessageToChat(message, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}-message`;
+                messageDiv.textContent = message;
+                chatMessages.appendChild(messageDiv);
+                
+                // Scroll to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        });
+    </script>
+</body>
+</html>

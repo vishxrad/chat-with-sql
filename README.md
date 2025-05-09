@@ -1,4 +1,4 @@
-# Student Portal with AI Assistant
+# Chat with SQL AI Assistant
 
 A FastAPI-based student portal backend with an AI-powered chat assistant using Ollama. The system allows students to log in using their contact number and interact with an AI assistant that has access to their personal information.
 

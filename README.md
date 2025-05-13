@@ -29,6 +29,18 @@ sql/
 └── README.md          # Project documentation
 ```
 
+## Docker Container
+
+1. Pull image:
+   ```bash
+   sudo docker pull visharxd/chat-with-sql:latest
+   ```
+
+2. Make a container of the image:
+    ```bash
+    sudo docker run -d --name my-sql-chatbot -p 8000:8000 visharxd/chat-with-sql:latest
+    ```
+
 ## Installation
 
 1. Clone the repository:

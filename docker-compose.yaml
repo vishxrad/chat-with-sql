@@ -1,0 +1,47 @@
+version: '3.9'
+
+services:
+  fastapi:
+    image: visharxd/chat-with-sql:latest  # Replace build: .
+    container_name: chatSQL
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env    # Use .env file instead of environment block
+    depends_on:
+      - mysql
+      - ollama
+    volumes:
+      - ./app:/app
+
+  mysql:
+    image: mysql:8
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}  # Use from .env
+      MYSQL_DATABASE: ${DB_NAME}           # Use from .env
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  ollama:
+    image: ollama/ollama
+    container_name: ollama_api
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: always
+    entrypoint: ["ollama"]
+    command: ["serve"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql_data:
+  ollama_data:

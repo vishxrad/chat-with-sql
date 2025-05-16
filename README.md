@@ -16,7 +16,7 @@ A FastAPI-based student portal backend with an AI-powered chat assistant using O
 - Python 3.8+
 - MySQL Server
 - Ollama (Local LLM server)
-- Node.js (for development)
+
 
 ## Project Structure
 
